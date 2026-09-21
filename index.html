@@ -453,11 +453,29 @@ let state = {
   days: {}            // { 'YYYY-MM-DD': { missions: [...], bookPages: 0, history: [...] } }
 };
 
-// ==================== PERSIAN DATE ====================
+// ==================== PERSIAN DATE (jalali manual) ====================
+function gregorianToJalali(gy, gm, gd) {
+  const g_days_in_month = [31,28,31,30,31,30,31,31,30,31,30,31];
+  const j_days_in_month = [31,31,31,31,31,31,30,30,30,30,30,29];
+  let gy2 = (gm > 2) ? (gy + 1) : gy;
+  let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400);
+  for (let i = 0; i < gm - 1; ++i) days += g_days_in_month[i];
+  if (gm > 1 && ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0))) days += 1;
+  days += gd;
+  let jy = -61 + (474 * Math.floor((4 * days - 1) / 146097));
+  let jm, jd;
+  days -= (355682 + (365 * jy) + Math.floor((jy + 3) / 4));
+  for (let i = 0; i < 11; i++) {
+    if (days <= j_days_in_month[i]) { jm = i + 1; jd = days; break; }
+    days -= j_days_in_month[i];
+  }
+  if (!jm) { jm = 12; jd = days; }
+  return { jy, jm, jd };
+}
 function toPersianDate(iso) {
   const d = new Date(iso + 'T00:00:00');
-  const p = new Intl.DateTimeFormat('fa-IR', { year:'numeric', month:'2-digit', day:'2-digit' }).format(d);
-  return p; // ۱۴۰۴/۰۱/۳۰
+  const { jy, jm, jd } = gregorianToJalali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  return `${jy}/${String(jm).padStart(2,'0')}/${String(jd).padStart(2,'0')}`;
 }
 function formatPersian(iso) {
   const p = toPersianDate(iso);
@@ -502,7 +520,6 @@ function toggleMission(id) {
     showToast(`✅ ${m.emoji} ${m.name} — ${m.xp} XP`);
   } else {
     day.missions.splice(idx, 1);
-    // remove from history too
     day.history = day.history.filter(h => !(h.type === 'mission' && h.id === id));
     showToast('برگشت');
   }
@@ -522,7 +539,6 @@ function addBookXp() {
   if (isNaN(pages) || pages < 1) { pages = 1; input.value = 1; }
   const xp = calcBookXp(pages);
   const day = getDay(state.currentDate);
-  // add to book pages for this day
   day.bookPages = (day.bookPages || 0) + pages;
   day.history.push({ type:'book', name:`📚 ${pages} صفحه کتاب`, xp, pages, time:Date.now() });
   saveState();
@@ -536,12 +552,10 @@ function addBookXp() {
 function getTotalXp(iso) {
   const day = getDay(iso);
   let total = 0;
-  // missions
   day.missions.forEach(id => {
     const m = MISSIONS.find(x => x.id === id);
     if (m) total += m.xp;
   });
-  // book
   if (day.bookPages > 0) {
     total += calcBookXp(day.bookPages);
   }
@@ -652,20 +666,16 @@ function render() {
 // ==================== DELETE HISTORY ====================
 function deleteHistory(index) {
   const day = getDay(state.currentDate);
-  // sort the same way
   const sorted = [...day.history].sort((a,b) => b.time - a.time);
   const item = sorted[index];
-  // find and remove from original array
   const origIdx = day.history.findIndex(h => h.time === item.time && h.name === item.name && h.xp === item.xp);
   if (origIdx !== -1) {
     const removed = day.history[origIdx];
     day.history.splice(origIdx, 1);
-    // if it was a mission, uncheck it
     if (removed.type === 'mission' && removed.id) {
       const mi = day.missions.indexOf(removed.id);
       if (mi !== -1) day.missions.splice(mi, 1);
     }
-    // if it was book, recalc bookPages
     if (removed.type === 'book' && removed.pages) {
       day.bookPages = Math.max(0, (day.bookPages || 0) - removed.pages);
     }
