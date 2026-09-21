@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEYATIM DMO XP — سیستم پیگیری روزانه</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0f0f1a;
+    --surface:#1a1a2e;
+    --surface2:#16213e;
+    --primary:#7c3aed;
+    --primary-glow:#a78bfa;
+    --accent:#f59e0b;
+    --success:#10b981;
+    --danger:#ef4444;
+    --text:#e2e8f0;
+    --text-muted:#94a3b8;
+    --border:#2d2d4a;
+    --radius:12px;
+    --shadow:0 4px 20px rgba(0,0,0,0.4);
+  }
+  body{
+    font-family:'Vazirmatn',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    padding:20px;
+    background-image:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,0.08) 0%,transparent 50%),
+                     radial-gradient(ellipse at 80% 20%,rgba(245,158,11,0.05) 0%,transparent 50%);
+  }
+  .container{max-width:720px;margin:0 auto}
+  
+  /* header */
+  .header{
+    text-align:center;
+    padding:30px 20px 20px;
+    background:linear-gradient(135deg,var(--surface),var(--surface2));
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    margin-bottom:20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .header::before{
+    content:'';
+    position:absolute;
+    top:-50%;left:-50%;width:200%;height:200%;
+    background:conic-gradient(from 0deg,transparent,var(--primary),transparent,var(--accent),transparent);
+    animation:rotateGlow 8s linear infinite;
+    opacity:0.08;
+  }
+  @keyframes rotateGlow{to{transform:rotate(360deg)}}
+  .header>*{position:relative;z-index:1}
+  .logo{
+    font-size:14px;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--primary-glow);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .header h1{
+    font-size:28px;
+    font-weight:900;
+    background:linear-gradient(135deg,var(--primary-glow),var(--accent));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .subtitle{color:var(--text-muted);font-size:14px;margin-top:4px}
+
+  /* daily goal */
+  .goal-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .goal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .goal-label{font-weight:600;font-size:14px;color:var(--text-muted)}
+  .goal-xp{
+    font-size:32px;
+    font-weight:900;
+    color:var(--primary-glow);
+  }
+  .goal-xp span{font-size:16px;color:var(--text-muted);font-weight:400}
+  .progress-bar{
+    height:10px;
+    background:var(--border);
+    border-radius:99px;
+    overflow:hidden;
+    margin:10px 0 8px;
+  }
+  .progress-fill{
+    height:100%;
+    border-radius:99px;
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+    transition:width 0.5s ease;
+    width:0%;
+  }
+  .goal-status{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  .goal-status .done{color:var(--success);font-weight:600}
+  .goal-status .remaining{color:var(--accent)}
+
+  /* section title */
+  .section-title{
+    font-size:16px;
+    font-weight:700;
+    margin:20px 0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title .badge{
+    background:var(--primary);
+    color:#fff;
+    font-size:12px;
+    padding:1px 10px;
+    border-radius:99px;
+    font-weight:600;
+  }
+
+  /* missions */
+  .missions-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  @media(max-width:500px){.missions-grid{grid-template-columns:1fr}}
+  .mission-btn{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    cursor:pointer;
+    text-align:right;
+    transition:all 0.2s;
+    font-family:inherit;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:14px;
+  }
+  .mission-btn:hover{border-color:var(--primary);background:var(--surface2)}
+  .mission-btn.done{
+    border-color:var(--success);
+    background:rgba(16,185,129,0.08);
+  }
+  .mission-btn .emoji{font-size:22px;flex-shrink:0}
+  .mission-btn .info{flex:1}
+  .mission-btn .name{font-weight:500;font-size:13px}
+  .mission-btn .xp{
+    font-size:11px;
+    color:var(--text-muted);
+  }
+  .mission-btn .check{
+    width:24px;height:24px;
+    border-radius:50%;
+    border:2px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    transition:all 0.2s;
+    font-size:13px;
+  }
+  .mission-btn.done .check{
+    background:var(--success);
+    border-color:var(--success);
+  }
+
+  /* book section */
+  .book-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .book-card .emoji{font-size:28px}
+  .book-card .label{font-weight:500;font-size:14px;flex:1;min-width:120px}
+  .book-card .label small{display:block;color:var(--text-muted);font-size:12px;font-weight:400}
+  .book-input{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 12px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:15px;
+    width:80px;
+    text-align:center;
+    direction:ltr;
+  }
+  .book-input:focus{outline:none;border-color:var(--primary)}
+  .book-result{
+    font-weight:700;
+    font-size:18px;
+    color:var(--accent);
+    min-width:60px;
+    text-align:center;
+  }
+  .book-add{
+    background:var(--primary);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:8px 18px;
+    font-family:inherit;
+    font-weight:600;
+    cursor:pointer;
+    font-size:14px;
+    transition:all 0.2s;
+  }
+  .book-add:hover{background:var(--primary-glow);transform:scale(1.03)}
+  .book-add:disabled{opacity:0.4;cursor:default;transform:none}
+
+  /* history */
+  .history{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-top:10px;
+  }
+  .history-empty{
+    text-align:center;
+    color:var(--text-muted);
+    padding:20px;
+    font-size:14px;
+  }
+  .history-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .history-item:last-child{border-bottom:none}
+  .history-item .h-name{display:flex;align-items:center;gap:6px}
+  .history-item .h-xp{font-weight:700;color:var(--primary-glow)}
+  .history-item .h-time{color:var(--text-muted);font-size:11px}
+  .history-item .h-del{
+    background:none;
+    border:none;
+    color:var(--danger);
+    cursor:pointer;
+    font-size:16px;
+    padding:2px 6px;
+    opacity:0.5;
+    transition:opacity 0.2s;
+  }
+  .history-item .h-del:hover{opacity:1}
+
+  /* controls */
+  .controls{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    padding:8px 18px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text);
+    font-family:inherit;
+    font-size:13px;
+    cursor:pointer;
+    transition:all 0.2s;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn:hover{background:var(--surface2);border-color:var(--primary)}
+  .btn-danger{color:var(--danger);border-color:rgba(239,68,68,0.3)}
+  .btn-danger:hover{background:rgba(239,68,68,0.1);border-color:var(--danger)}
+  .btn-success{background:var(--success);color:#fff;border-color:var(--success)}
+  .btn-success:hover{background:#059669}
+
+  /* date picker */
+  .date-nav{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    margin-bottom:16px;
+  }
+  .date-nav button{
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    font-size:22px;
+    cursor:pointer;
+    padding:4px 10px;
+    transition:color 0.2s;
+  }
+  .date-nav button:hover{color:var(--primary-glow)}
+  .date-nav .date-display{
+    font-weight:600;
+    font-size:16px;
+    min-width:140px;
+    text-align:center;
+  }
+
+  /* toast */
+  .toast{
+    position:fixed;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:12px 24px;
+    border-radius:99px;
+    font-size:14px;
+    box-shadow:var(--shadow);
+    opacity:0;
+    transition:opacity 0.3s;
+    z-index:999;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1}
+
+  .footer{
+    text-align:center;
+    padding:30px 0 10px;
+    color:var(--text-muted);
+    font-size:12px;
+    opacity:0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">⚡ LEYATIM DMO</div>
+    <h1>سیستم پیگیری XP</h1>
+    <div class="subtitle">هر مأموریتی که انجام میدی، XP می‌گیری — نه برای نتیجه، برای انجام!</div>
+  </div>
+
+  <!-- DATE NAV -->
+  <div class="date-nav">
+    <button onclick="changeDate(-1)">◀</button>
+    <span class="date-display" id="dateDisplay"></span>
+    <button onclick="changeDate(1)">▶</button>
+    <button class="btn" onclick="goToday()" style="padding:4px 12px;font-size:12px">امروز</button>
+  </div>
+
+  <!-- GOAL -->
+  <div class="goal-card">
+    <div class="goal-header">
+      <span class="goal-label">🎯 هدف روزانه</span>
+      <div class="goal-xp"><span id="totalXp">0</span><span> / 100 XP</span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="goal-status">
+      <span id="goalStatus">هنوز شروع نکردی! 🔥</span>
+      <span class="remaining" id="remainingXp">۱۰۰ XP باقی‌مونده</span>
+    </div>
+  </div>
+
+  <!-- MISSIONS -->
+  <div class="section-title">
+    📋 مأموریت‌های امروز
+    <span class="badge" id="doneCount">0</span>
+  </div>
+  <div class="missions-grid" id="missionsGrid"></div>
+
+  <!-- BOOK READING -->
+  <div class="section-title">📚 کتاب خواندن</div>
+  <div class="book-card">
+    <span class="emoji">📖</span>
+    <div class="label">
+      تعداد صفحات
+      <small>هر صفحه ۱ امتیاز ← به‌توان ۳</small>
+    </div>
+    <input type="number" class="book-input" id="bookPages" min="1" value="1" placeholder="صفحه">
+    <span class="book-result" id="bookXpPreview">1</span>
+    <span style="color:var(--text-muted);font-size:13px">XP</span>
+    <button class="book-add" id="bookAddBtn" onclick="addBookXp()">✅ ثبت</button>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="section-title">📜 تاریخچه امروز</div>
+  <div class="history" id="historyContainer">
+    <div class="history-empty" id="historyEmpty">هنوز هیچ مأموریتی ثبت نشده</div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn btn-success" onclick="resetToday()">🔄 ریست امروز</button>
+    <button class="btn btn-danger" onclick="showStats()">📊 آمار</button>
+    <button class="btn" onclick="exportData()">📥 خروجی</button>
+    <button class="btn" onclick="importData()">📤 ورودی</button>
+    <input type="file" id="importInput" accept=".json" style="display:none" onchange="handleImport(event)">
+  </div>
+
+  <div class="footer">LEYATIM DMO XP · ساخته شده با ❤️</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== CONFIG ====================
+const GOAL = 100;
+const MISSIONS = [
+  {id:'msg',emoji:'📩',name:'پیام به مشتری جدید',xp:10},
+  {id:'follow',emoji:'🔄',name:'پیگیری مشتری قبلی',xp:15},
+  {id:'product',emoji:'🧴',name:'معرفی محصول به یک نفر',xp:25},
+  {id:'lead',emoji:'🔎',name:'پیدا کردن سرنخ جدید',xp:20},
+  {id:'instagram',emoji:'📱',name:'انتشار محتوای اینستاگرام',xp:30},
+  {id:'deal',emoji:'🤝',name:'مذاکره برای همکاری',xp:40},
+  {id:'order',emoji:'🛒',name:'ثبت سفارش',xp:50},
+  {id:'recruit',emoji:'👤',name:'جذب همکار جدید',xp:100},
+  {id:'learn',emoji:'🎓',name:'آموزش/یادگیری مرتبط با کار',xp:10},
+  {id:'leads',emoji:'📊',name:'بررسی و پیگیری لیدها',xp:10},
+  {id:'call',emoji:'📞',name:'تماس واقعی با مشتری/لید',xp:20},
+  {id:'visit',emoji:'🏪',name:'مراجعه حضوری برای معرفی محصول',xp:30},
+];
+
+const PERSIAN_MONTHS = [
+  'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور',
+  'مهر','آبان','آذر','دی','بهمن','اسفند'
+];
+
+// ==================== STATE ====================
+let state = {
+  currentDate: '',     // YYYY-MM-DD
+  days: {}            // { 'YYYY-MM-DD': { missions: [...], bookPages: 0, history: [...] } }
+};
+
+// ==================== PERSIAN DATE ====================
+function toPersianDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const p = new Intl.DateTimeFormat('fa-IR', { year:'numeric', month:'2-digit', day:'2-digit' }).format(d);
+  return p; // ۱۴۰۴/۰۱/۳۰
+}
+function formatPersian(iso) {
+  const p = toPersianDate(iso);
+  const parts = p.split('/');
+  const monthNum = parseInt(parts[1],10);
+  return `${parseInt(parts[2],10)} ${PERSIAN_MONTHS[monthNum-1]} ${parts[0]}`;
+}
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// ==================== DATA PERSISTENCE ====================
+function loadState() {
+  try {
+    const raw = localStorage.getItem('leyatim_xp_state');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state.days = parsed.days || {};
+    }
+  } catch(e) { /* ignore */ }
+}
+function saveState() {
+  localStorage.setItem('leyatim_xp_state', JSON.stringify({ days: state.days }));
+}
+
+function getDay(iso) {
+  if (!state.days[iso]) {
+    state.days[iso] = { missions: [], bookPages: 0, history: [] };
+  }
+  return state.days[iso];
+}
+
+// ==================== MISSION TOGGLE ====================
+function toggleMission(id) {
+  const day = getDay(state.currentDate);
+  const idx = day.missions.indexOf(id);
+  if (idx === -1) {
+    day.missions.push(id);
+    const m = MISSIONS.find(x => x.id === id);
+    day.history.push({ type:'mission', id, name:m.emoji+' '+m.name, xp:m.xp, time:Date.now() });
+    showToast(`✅ ${m.emoji} ${m.name} — ${m.xp} XP`);
+  } else {
+    day.missions.splice(idx, 1);
+    // remove from history too
+    day.history = day.history.filter(h => !(h.type === 'mission' && h.id === id));
+    showToast('برگشت');
+  }
+  saveState();
+  render();
+}
+
+// ==================== BOOK XP ====================
+function calcBookXp(pages) {
+  if (pages < 1) return 0;
+  return Math.pow(pages, 3);
+}
+
+function addBookXp() {
+  const input = document.getElementById('bookPages');
+  let pages = parseInt(input.value, 10);
+  if (isNaN(pages) || pages < 1) { pages = 1; input.value = 1; }
+  const xp = calcBookXp(pages);
+  const day = getDay(state.currentDate);
+  // add to book pages for this day
+  day.bookPages = (day.bookPages || 0) + pages;
+  day.history.push({ type:'book', name:`📚 ${pages} صفحه کتاب`, xp, pages, time:Date.now() });
+  saveState();
+  render();
+  showToast(`📚 ${pages} صفحه = ${xp} XP`);
+  input.value = 1;
+  document.getElementById('bookXpPreview').textContent = '1';
+}
+
+// ==================== COMPUTED ====================
+function getTotalXp(iso) {
+  const day = getDay(iso);
+  let total = 0;
+  // missions
+  day.missions.forEach(id => {
+    const m = MISSIONS.find(x => x.id === id);
+    if (m) total += m.xp;
+  });
+  // book
+  if (day.bookPages > 0) {
+    total += calcBookXp(day.bookPages);
+  }
+  return total;
+}
+
+function getDoneMissions(iso) {
+  return getDay(iso).missions.length;
+}
+
+// ==================== DATE NAV ====================
+function changeDate(delta) {
+  const d = new Date(state.currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  state.currentDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  render();
+}
+function goToday() {
+  state.currentDate = todayISO();
+  render();
+}
+
+// ==================== RENDER ====================
+function render() {
+  const iso = state.currentDate;
+  const day = getDay(iso);
+  const total = getTotalXp(iso);
+  const doneCount = day.missions.length;
+  const isToday = iso === todayISO();
+
+  // Date display
+  document.getElementById('dateDisplay').textContent = formatPersian(iso) + (isToday ? ' 🔥' : '');
+
+  // Goal
+  document.getElementById('totalXp').textContent = total;
+  const pct = Math.min(100, Math.round((total / GOAL) * 100));
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const remaining = Math.max(0, GOAL - total);
+  document.getElementById('remainingXp').textContent = remaining > 0
+    ? remaining.toLocaleString('fa-IR') + ' XP باقی‌مونده'
+    : '🎉 تکمیل شد!';
+
+  const statusEl = document.getElementById('goalStatus');
+  if (total >= GOAL) {
+    statusEl.innerHTML = '🎉🎉🎉 به هدف رسیدی! آفرین!';
+    statusEl.style.color = 'var(--success)';
+  } else if (total > 0) {
+    statusEl.innerHTML = '🔥 ادامه بده، می‌تونی!';
+    statusEl.style.color = 'var(--accent)';
+  } else {
+    statusEl.innerHTML = '⏰ هنوز شروع نکردی!';
+    statusEl.style.color = 'var(--text-muted)';
+  }
+
+  document.getElementById('doneCount').textContent = doneCount + '/' + MISSIONS.length;
+
+  // Missions grid
+  const grid = document.getElementById('missionsGrid');
+  grid.innerHTML = '';
+  MISSIONS.forEach(m => {
+    const done = day.missions.includes(m.id);
+    const btn = document.createElement('button');
+    btn.className = 'mission-btn' + (done ? ' done' : '');
+    btn.innerHTML = `
+      <span class="emoji">${m.emoji}</span>
+      <span class="info">
+        <div class="name">${m.name}</div>
+        <div class="xp">+${m.xp} XP</div>
+      </span>
+      <span class="check">${done ? '✓' : ''}</span>
+    `;
+    btn.onclick = () => toggleMission(m.id);
+    grid.appendChild(btn);
+  });
+
+  // Book preview
+  const pages = parseInt(document.getElementById('bookPages').value, 10) || 0;
+  document.getElementById('bookXpPreview').textContent = pages > 0 ? calcBookXp(pages) : 0;
+
+  // History
+  const histList = document.getElementById('historyList');
+  const histEmpty = document.getElementById('historyEmpty');
+  const sorted = [...day.history].sort((a,b) => b.time - a.time);
+
+  if (sorted.length === 0) {
+    histList.innerHTML = '';
+    histEmpty.style.display = 'block';
+  } else {
+    histEmpty.style.display = 'none';
+    histList.innerHTML = sorted.map((h, i) => {
+      const time = new Date(h.time);
+      const timeStr = time.toLocaleTimeString('fa-IR', { hour:'2-digit', minute:'2-digit' });
+      return `
+        <div class="history-item">
+          <span class="h-name">${h.name}</span>
+          <span>
+            <span class="h-xp">+${h.xp}</span>
+            <span class="h-time">${timeStr}</span>
+            <button class="h-del" onclick="deleteHistory(${i})" title="حذف">✕</button>
+          </span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// ==================== DELETE HISTORY ====================
+function deleteHistory(index) {
+  const day = getDay(state.currentDate);
+  // sort the same way
+  const sorted = [...day.history].sort((a,b) => b.time - a.time);
+  const item = sorted[index];
+  // find and remove from original array
+  const origIdx = day.history.findIndex(h => h.time === item.time && h.name === item.name && h.xp === item.xp);
+  if (origIdx !== -1) {
+    const removed = day.history[origIdx];
+    day.history.splice(origIdx, 1);
+    // if it was a mission, uncheck it
+    if (removed.type === 'mission' && removed.id) {
+      const mi = day.missions.indexOf(removed.id);
+      if (mi !== -1) day.missions.splice(mi, 1);
+    }
+    // if it was book, recalc bookPages
+    if (removed.type === 'book' && removed.pages) {
+      day.bookPages = Math.max(0, (day.bookPages || 0) - removed.pages);
+    }
+    saveState();
+    render();
+    showToast('🗑️ حذف شد');
+  }
+}
+
+// ==================== ACTIONS ====================
+function resetToday() {
+  if (!confirm('ریست کردن امروز؟ همه مأموریت‌ها و XP امروز پاک می‌شه.')) return;
+  state.days[state.currentDate] = { missions: [], bookPages: 0, history: [] };
+  saveState();
+  render();
+  showToast('🔄 امروز ریست شد');
+}
+
+function showStats() {
+  const allDays = Object.keys(state.days);
+  if (allDays.length === 0) {
+    showToast('📊 هنوز داده‌ای ثبت نشده');
+    return;
+  }
+  let totalXpAll = 0;
+  let daysDone = 0;
+  let totalMissions = 0;
+  let maxXp = 0;
+  let maxDay = '';
+
+  allDays.forEach(iso => {
+    const xp = getTotalXp(iso);
+    totalXpAll += xp;
+    totalMissions += getDay(iso).missions.length;
+    if (xp >= GOAL) daysDone++;
+    if (xp > maxXp) { maxXp = xp; maxDay = iso; }
+  });
+
+  const streak = calcStreak();
+  const msg = `📊 **آمار کلی**
+━━━━━━━━━━━━━━
+📅 روزهای فعال: ${allDays.length.toLocaleString('fa-IR')}
+🎯 روزهای موفق (۱۰۰+): ${daysDone.toLocaleString('fa-IR')}
+⭐ مجموع XP: ${totalXpAll.toLocaleString('fa-IR')}
+📋 مأموریت‌های انجام‌شده: ${totalMissions.toLocaleString('fa-IR')}
+🔥 streak: ${streak} روز پشت‌سر هم
+🏆 بهترین روز: ${maxDay ? formatPersian(maxDay) + ' — ' + maxXp + ' XP' : '—'}`;
+  alert(msg);
+}
+
+function calcStreak() {
+  let streak = 0;
+  const d = new Date();
+  while (true) {
+    const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const day = state.days[iso];
+    if (day && day.history.length > 0) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state.days, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'leyatim_xp_backup.json';
+  a.click();
+  showToast('📥 خروجی گرفته شد');
+}
+
+function importData() {
+  document.getElementById('importInput').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (confirm('آمار جدید جایگزین آمار فعلی بشه؟')) {
+        state.days = data;
+        saveState();
+        render();
+        showToast('📤 ورودی با موفقیت بارگذاری شد');
+      }
+    } catch(err) {
+      showToast('❌ فایل معتبر نیست');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ==================== BOOK INPUT LIVE PREVIEW ====================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('bookPages').addEventListener('input', () => {
+    const pages = parseInt(document.getElementById('bookPages').value, 10) || 0;
+    document.getElementById('bookXpPreview').textContent = pages > 0 ? calcBookXp(pages) : 0;
+  });
+});
+
+// ==================== INIT ====================
+loadState();
+state.currentDate = todayISO();
+render();
+</script>
+</body>
+</html>
